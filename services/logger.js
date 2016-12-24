@@ -22,9 +22,6 @@ if (config.get('debug') === true) {
     }));
 }
 
-
-return ;
-
 const logger = new (winston.Logger)({
     transports: transports
 });
