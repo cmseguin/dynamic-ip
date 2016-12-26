@@ -1,18 +1,23 @@
 const rest = require('restler');
 
 const config = require('../services/config');
-const logger = require('../services/logger');
 const SystemError = require('../errors/system-error');
 
 const domainregex = /^((?=[a-z0-9-]{1,63}\.)[a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,63}$/;
 
+const doe = config.get('digitalOceanEndpoint');
+const dot = config.get('digitalOceanToken');
 
 module.exports = {
-    get: (domain, record, callback) => {
-        let tc = (typeof callback);
-        let td = (typeof domain);
-        let tr = (typeof record);
+    'get': (domain, callback) => {
+        // Storing the endpoint
+        const endpoint = `${doe}domains/${domain}/records`;
 
+        // Store the type of all the properties
+        const tc = typeof callback;
+        const td = typeof domain;
+
+        // Validating the properties
         if (tc !== 'function') {
             throw new SystemError(`Type: ${tc} of callback is not valid`);
         }
@@ -21,31 +26,28 @@ module.exports = {
             throw new SystemError(`Type: ${td} of domain is not valid`);
         }
 
-        if (tr !== 'string') {
-            throw new SystemError(`Type: ${tr} of record is not valid`);
-        }
-
         if (!domain.match(domainregex)) {
             throw new SystemError(`${domain} is not a valid domain`);
         }
 
-        let endpoint = `${config.get('digitalOceanEndpoint')}domains/${domain}/records`;
-
-        let request = rest.get(endpoint, {
-            timeout: 10000,
-            headers: {
+        // Initialize the request
+        const request = rest.get(endpoint, {
+            'timeout': 10000,
+            'headers': {
                 'Accept': '*/*',
                 'User-Agent': 'Restler for node.js',
-                'Authorization' : `Bearer ${config.get('digitalOceanToken')}`
+                'Authorization': `Bearer ${dot}`
             }
         });
 
-        request.on('timeout', function(ms) {
+        // Subscribe to the timeout event
+        request.on('timeout', (ms) => {
             throw new SystemError(`Timeout while getting the records after ${ms}ms`);
         });
 
-        request.on('complete',function(data, response) {
-            let sc = response.statusCode;
+        // Subscribe to the complete event
+        request.on('complete', (data, response) => {
+            const sc = response.statusCode;
 
             if (sc < 200 || sc >= 300) {
                 throw new SystemError(`Failed to get records with status code: ${sc}`);
@@ -59,45 +61,49 @@ module.exports = {
                 throw new SystemError(`The data returned if not a valid format`);
             }
 
-            for (let i in data.domain_records) {
-                if (
-                    data.domain_records[i].name === record &&
-                    typeof callback === 'function'
-                ) {
-                    callback(data.domain_records[i], response);
-                    break;
-                }
-            }
+            callback(data.domain_records, response);
         });
     },
-    set: (domain, record, ip, callback) => {
-        let endpoint = `${config.get('digitalOceanEndpoint')}domains/${domain}/records/${record}`;
-        let request = rest.put(endpoint, {
-            timeout: 10000,
-            data: JSON.stringify({
+    'set': (domain, record, ip, callback) => {
+
+        // Set the endpoint url
+        const endpoint = `${doe}domains/${domain}/records/${record}`;
+
+        // Store the type of all the properties
+        const tc = typeof callback;
+
+        // Validating the properties
+        if (tc !== 'function') {
+            throw new SystemError(`Type: ${tc} of callback is not valid`);
+        }
+
+        // Initialize the request
+        const request = rest.put(endpoint, {
+            'timeout': 10000,
+            'data': JSON.stringify({
                 'data': ip
             }),
-            headers: {
+            'headers': {
                 'Accept': '*/*',
                 'User-Agent': 'Restler for node.js',
                 'Content-Type': 'application/json',
-                'Authorization' : `Bearer ${config.doToken}`
-            }
-        })
-
-        request.on('timeout', function(ms) {
-            throw new SystemError(`Timeout while setting the records after ${ms}ms`);
-        })
-
-        request.on('complete',function(data, response) {
-            if (response.statusCode < 200 || response.statusCode >= 300) {
-                throw new SystemError(`Failed to get records with status code: ${response.statusCode}`);
-                return;
-            }
-
-            if (typeof callback === 'function') {
-                callback();
+                'Authorization': `Bearer ${dot}`
             }
         });
+
+        request.on('timeout', (ms) => {
+            throw new SystemError(`Timeout while setting the records after ${ms}ms`);
+        });
+
+        request.on('complete', (data, response) => {
+            const sc = response.statusCode;
+
+            if (sc < 200 || sc >= 300) {
+                throw new SystemError(`Failed to get records with status code: ${sc}`);
+            }
+
+            callback();
+        });
     }
-}
+
+};

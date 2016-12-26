@@ -1,0 +1,21 @@
+{
+    "extends": "eslint:all",
+    "env": {
+        "node": true,
+        "es6": true,
+        "mocha": true
+    },
+    "rules": {
+        "one-var": ["error", "never"],
+        "quotes": ["error", "single", { "allowTemplateLiterals": true }],
+        "max-len": 0,
+        "max-statements": 0,
+        "strict": 0,
+        "padded-blocks": 0,
+        "no-magic-numbers": 0,
+        "max-params": 0,
+        "object-curly-spacing": 0,
+        "object-curly-newline": 0,
+        "sort-keys": 0
+    }
+}
