@@ -1,16 +1,17 @@
 const chai = require('chai');
-const nock = require('nock');
 
 const Ip = require('../models/ip');
 const Records = require('../models/records');
 const SystemError = require('../errors/system-error');
+const config = require('../services/config');
 
-const ipregex = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}$/;
 const should = chai.should();
 
+const ipregex = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}$/;
+
 describe('Testing the ip address API', () => {
-    let ipAddress;
-    let response;
+    let ipAddress = null;
+    let response = null;
 
     before((done) => {
         Ip.get((ip, res) => {
@@ -26,16 +27,16 @@ describe('Testing the ip address API', () => {
 
     it('Ip address should have a valid ipv4 format', () => {
         ipAddress.should.match(ipregex);
-    })
+    });
 });
 
 describe('Testing DigitalOcean API to get records', () => {
-    let record;
-    let response;
+    let records = null;
+    let response = null;
 
     before((done) => {
-        Records.get('charlesmathieuseguin.com', 'home', (rec, res) => {
-            record = rec;
+        Records.get('charlesmathieuseguin.com', (rec, res) => {
+            records = rec;
             response = res;
             done();
         });
@@ -45,31 +46,51 @@ describe('Testing DigitalOcean API to get records', () => {
         response.statusCode.should.be.equal(200);
     });
 
+    it('Should return an array', () => {
+        records.should.be.an('array');
+    });
+
     it('Sending an int for domain should throw a system error', () => {
         (() => {
-            Records.get(1, 'home', () => {})
+            Records.get(1, 'home', () => {});
         }).should.throw(SystemError);
     });
 
     it('Sending an array for domain should throw a system error', () => {
         (() => {
-            Records.get(['charlesmathieuseguin.com'], 'home', () => {})
+            Records.get(['charlesmathieuseguin.com'], () => {});
         }).should.throw(SystemError);
     });
 
-    it('Sending a none valid domain should throw a system error', () => {
+    it('Sending a non-valid domain should throw a system error', () => {
         (() => {
-            Records.get('charlesmathieuseguin', 'home', () => {})
-        }).should.throw(SystemError);
-    });
-
-    it('Sending an int for record should throw a system error', () => {
-        (() => {
-            Records.get('charlesmathieuseguin.com', 1, () => {})
+            Records.get('charlesmathieuseguin', () => {});
         }).should.throw(SystemError);
     });
 });
 
-// it('Ip address should have a valid ipv4 format', () => {
-    //record.data.should.match(ipregex);
-//});
+describe('Testing DigitalOcean API to set records', () => {
+    it('Sending a non-valid domain should throw a system error', () => {
+        (() => {
+            Records.get('charlesmathieuseguin', 'test', '0.0.0.0', () => {});
+        }).should.throw(SystemError);
+    });
+
+    it('Sending a non-valid record should throw a system error', () => {
+        (() => {
+            Records.get('charlesmathieuseguin.com', 1, '0.0.0.0', () => {});
+        }).should.throw(SystemError);
+    });
+
+    it('Sending a non-valid ip should throw a system error', () => {
+        (() => {
+            Records.get('charlesmathieuseguin.com', 'test', '0.0.0', () => {});
+        }).should.throw(SystemError);
+    });
+});
+
+describe('Testing the stoage model', () => {
+    it('Should create a file if none exists', () => {
+
+    });
+});

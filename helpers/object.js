@@ -1,16 +1,22 @@
 module.exports = {
-    access: (o, s) => {
-        s = s.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
-        s = s.replace(/^\./, '');           // strip a leading dot
-        var a = s.split('.');
-        for (var i = 0, n = a.length; i < n; ++i) {
-            var k = a[i];
-            if (k in o) {
-                o = o[k];
+    'access': (srcObj, key) => {
+        let search = key.replace(/\[(\w+)]/g, '.$1');
+        let object = srcObj;
+
+        search = search.replace(/^\./, '');
+
+        const list = search.split('.');
+
+        for (let i = 0, max = list.length; i < max; ++i) {
+            const k = list[i];
+
+            if (k in object) {
+                object = object[k];
             } else {
                 return;
             }
         }
-        return o;
+
+        return object;
     }
 };

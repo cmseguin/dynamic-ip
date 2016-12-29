@@ -1,22 +1,31 @@
 const extend = require('deep-extend');
 const objHelper = require('../helpers/object');
 const configFile = require('../config');
+const localConfigFile = require('../config-local');
 
-let localConfigFile;
+const SystemError = require('../errors/system-error');
 
-try {
-    localConfigFile = require('../config-local');
-} catch (e) {
-    localConfigFile = {};
-}
-
-let config = extend(configFile, localConfigFile);
+const config = extend(configFile, localConfigFile);
 
 module.exports = {
-    get: (key) => {
+    'get': (key) => {
+        // Store the type of all the properties
+        const tk = typeof key;
+
+        if (tk !== 'string') {
+            throw new SystemError(`Key is not a valid.\nValue: ${key}\nType: ${tk}`);
+        }
+
         return objHelper.access(config, key);
     },
-    has: (key) => {
-        return (typeof objHelper.access(config, key) !== 'undefined')
+    'has': (key) => {
+        // Store the type of all the properties
+        const tk = typeof key;
+
+        if (tk !== 'string') {
+            throw new SystemError(`Key is not a valid.\nValue: ${key}\nType: ${tk}`);
+        }
+
+        return typeof objHelper.access(config, key) !== 'undefined';
     }
 };
