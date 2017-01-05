@@ -27,12 +27,11 @@ setInterval(() => {
     try {
         // Request our own ip address from a 3rd party free service
         Ip.get((ip) => {
-            console.log(ip);
 
             // Check if the ip is the same, in which case we stop any other
             // actions.
             if (cachedIp === ip) {
-                logger.log(`Ip did not change`);
+                logger.info(`Ip did not change`);
 
                 return;
             }
@@ -46,11 +45,13 @@ setInterval(() => {
             // Set the new ip in the file storage as well
             Storage.set('ip', ip);
 
+
             // Loop through all the domains that needs to be updated
             for (let i = 0; i < domains.length; i++) {
                 const domainStack = domains[i];
                 const domain = domainStack.domain;
                 const records = domainStack.records;
+
 
                 // Now we get the records from digitalocean
                 Records.get(domain, (recs) => {
@@ -65,12 +66,15 @@ setInterval(() => {
                             continue;
                         }
 
-                        // If we find the record, update it
-                        if (records.indexOf(rec.name) !== -1) {
-                            Records.set(domain, rec.id, ip, () => {
-                                logger.log(`Records updated!`);
-                            });
+                        // If no record was found in the config skip
+                        if (records.indexOf(rec.name) === -1) {
+                            continue;
                         }
+
+                        // If we find the record, update it
+                        Records.set(domain, rec.id, ip, () => {
+                            logger.info(`Records updated!`);
+                        });
                     }
                 });
             }
@@ -78,4 +82,4 @@ setInterval(() => {
     } catch (e) {
         logger.error(e.getMessage());
     }
-}, config.interval);
+}, config.get('interval'));

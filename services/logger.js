@@ -3,27 +3,27 @@ const winston = require('winston');
 const dateFormat = require('dateformat');
 const config = require('./config');
 
-let transports = [];
+const transports = [];
 
 if (config.get('debug') === true) {
     transports.push(new (winston.transports.Console)({
-        formatter: function(options) {
-            let now = new Date();
-            let prefix = `[${dateFormat(now, "yyyy-mm-dd HH:MM:ss")}]`;
-            let message = options.message || '';
-            let meta = (options.meta && Object.keys(options.meta).length) ? '\n\t' + JSON.stringify(options.meta) : ''
+        'formatter': function (options) {
+            const now = new Date();
+            const prefix = `[${dateFormat(now, 'yyyy-mm-dd HH:MM:ss')}]`;
+            const message = options.message || '';
+            const meta = options.meta && Object.keys(options.meta).length ? '\n\t' + JSON.stringify(options.meta) : '';
 
             return `${prefix} ${message} ${meta}`;
         }
     }));
 } else {
     transports.push(new (winston.transports.File)({
-        filename: path.join('../', config.get('logDestination'), 'stdout.log')
+        'filename': path.join('../', config.get('logDestination'), 'stdout.log')
     }));
 }
 
 const logger = new (winston.Logger)({
-    transports: transports
+    transports
 });
 
 module.exports = logger;
