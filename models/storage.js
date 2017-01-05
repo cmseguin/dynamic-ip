@@ -11,82 +11,49 @@ module.exports = {
         const sd = config.get('storageDestination');
         const sf = config.get('storageFile');
 
-        return path.join(sd, sf);
+        return path.join(sd, `${sf}.json`);
     },
     '_fileExists': function _fileExists () {
         return fs.existsSync(this._getFileName());
     },
-    '_createFile': function _createFile (callback) {
-        // Store the type of all the properties
-        const tc = typeof callback;
-
-        // Validating the callback
-        if (tc !== 'function') {
-            throw new SystemError(`Callback is not valid.\nType: ${tc}`);
-        }
-
+    '_createFile': function _createFile () {
         // Create the file
-        fs.writeFile(this._getFileName(), '{}', (error) => {
-            if (error) {
-                throw new SystemError(error);
-            }
-
-            callback();
-        });
+        fs.writeFileSync(this._getFileName(), '{}');
     },
-    'getAll': function getAll (callback) {
-        // Store the type of all the properties
-        const tc = typeof callback;
-
-        // Validating the callback
-        if (tc !== 'function') {
-            throw new SystemError(`Callback is not valid.\nType: ${tc}`);
-        }
-
+    'getAll': function getAll () {
         if (!this._fileExists()) {
             this._createFile();
         }
 
-        fs.readFile(this._getFileName(), 'utf8', (error, output) => {
-            if (error) {
-                throw new SystemError(error);
-            }
+        const output = fs.readFileSync(this._getFileName(), 'utf8');
 
-            const parsedOutput = JSON.parse(output);
+        const parsedOutput = JSON.parse(output);
 
-            callback(parsedOutput);
-        });
+        return parsedOutput;
     },
-    'get': function get (key, callback) {
+    'get': function get (key) {
         // Store the type of all the properties
         const tk = typeof key;
-        const tc = typeof callback;
 
         // Validate the key
         if (tk !== 'string') {
             throw new SystemError(`Key is not a valid.\nValue: ${key}\nType: ${tk}`);
         }
 
-        // Validating the callback
-        if (tc !== 'function') {
-            throw new SystemError(`Callback is not valid.\nType: ${tc}`);
-        }
-
         // Use the getAll method to return the specific key
-        this.getAll((po) => {
-            callback(objHelper.access(po, key));
-        });
+        const po = this.getAll();
+
+        return objHelper.access(po, key);
     },
 
     // Only supports 1 dimentional object
-    'set': function set (key, value, callback) {
+    'set': function set (key, value) {
         // Initialize a new object
         let newObject = {};
 
         // Store the type of all the properties
         const tk = typeof key;
         const tv = typeof value;
-        const tc = typeof callback;
 
         // Validate the ip address
         if (tk !== 'string') {
@@ -98,25 +65,14 @@ module.exports = {
             throw new SystemError(`value cannot be a function.\nValue: ${value}\nType: ${tv}`);
         }
 
-        // Validating the callback
-        if (tc !== 'function') {
-            throw new SystemError(`Callback is not valid.\nType: ${tc}`);
-        }
-
         // Create new object
         newObject[key] = value;
 
-        this.getAll((po) => {
-            // Merge both object
-            newObject = extend(po, newObject);
+        const po = this.getAll();
 
-            fs.writeFile(this._getFileName(), JSON.stringify(newObject), 'utf8', (error) => {
-                if (error) {
-                    throw new SystemError(error);
-                }
+        // Merge both object
+        newObject = extend(po, newObject);
 
-                callback();
-            });
-        });
+        fs.writeFileSync(this._getFileName(), JSON.stringify(newObject), 'utf8');
     }
 };

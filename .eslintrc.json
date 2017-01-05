@@ -26,6 +26,8 @@
         "spaced-comment": 0,
         "dot-location": 0,
         "no-empty-function": 0,
-        "capitalized-comments": 0
+        "capitalized-comments": 0,
+        "no-labels": 0,
+        "no-continue": 0
     }
 }

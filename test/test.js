@@ -72,24 +72,30 @@ describe('Testing DigitalOcean API to get records', () => {
 describe('Testing DigitalOcean API to set records', () => {
     it('Sending a non-valid domain should throw a system error', () => {
         (() => {
-            Records.get('charlesmathieuseguin', 'test', '0.0.0.0', () => {});
+            Records.set('charlesmathieuseguin', 'test', '0.0.0.0', () => {});
         }).should.throw(SystemError);
     });
 
     it('Sending a non-valid record should throw a system error', () => {
         (() => {
-            Records.get('charlesmathieuseguin.com', 1, '0.0.0.0', () => {});
+            Records.set('charlesmathieuseguin.com', 'test', '0.0.0.0', () => {});
         }).should.throw(SystemError);
     });
 
     it('Sending a non-valid ip should throw a system error', () => {
         (() => {
-            Records.get('charlesmathieuseguin.com', 'test', '0.0.0', () => {});
+            Records.set('charlesmathieuseguin.com', 1, '0.0.0', () => {});
         }).should.throw(SystemError);
+    });
+
+    it('Sending a valid ip should not throw a system error', () => {
+        (() => {
+            Records.set('charlesmathieuseguin.com', 1, '137.175.144.52', () => {});
+        }).should.not.throw(SystemError);
     });
 });
 
-describe('Testing the stoage model', () => {
+describe('Testing the storage model', () => {
     it('Should create a file if none exists', () => {
 
     });

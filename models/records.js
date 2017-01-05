@@ -111,13 +111,13 @@ module.exports = {
         }
 
         // Validate the ip address
-        if (ti !== 'string' || !domain.match(ipregex)) {
+        if (ti !== 'string' || !ip.match(ipregex)) {
             throw new SystemError(`Ip address is not a valid.\nValue: ${ip}\nType: ${ti}`);
         }
 
         // Validate the record
-        if (tr !== 'string') {
-            throw new SystemError(`Record is not a valid.\nValue: ${record}\nType: ${tr}`);
+        if (tr !== 'number') {
+            throw new SystemError(`Record id is not a valid.\nValue: ${record}\nType: ${tr}`);
         }
 
         // Validate the domain
