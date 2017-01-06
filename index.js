@@ -73,7 +73,7 @@ setInterval(() => {
 
                         // If we find the record, update it
                         Records.set(domain, rec.id, ip, () => {
-                            logger.info(`Records updated!`);
+                            logger.info(`Record: ${rec.name} for domain: ${domain} updated with ip: ${ip}`);
                         });
                     }
                 });
