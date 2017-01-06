@@ -31,7 +31,7 @@ setInterval(() => {
             // Check if the ip is the same, in which case we stop any other
             // actions.
             if (cachedIp === ip) {
-                logger.info(`Ip did not change`);
+                logger.debug(`Ip did not change`);
 
                 return;
             }

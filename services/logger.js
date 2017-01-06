@@ -5,11 +5,11 @@ const dateFormat = require('dateformat');
 const config = require('./config');
 
 const transports = [];
-let level = 'warn';
+let level = 'info';
 
 if (config.get('debug') === true) {
-    // When debug mode is one, we want to see info
-    level = 'info';
+    // When debug mode is one, we want to see debug log
+    level = 'debug';
 
     // Output to the console
     transports.push(new winston.transports.Console({
