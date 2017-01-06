@@ -27,16 +27,13 @@ npm install
 
 ### Hooking it up with systemd
 
-Install the dependencies:
-```bash
-npm install --production
-```
-
-Clone the project in your home dir:
+Clone the project in your home dir and install the dependencies:
 ```bash
 cd ~
 git clone git@gitlab.com:cmseguin/dynamic-ip.git
-mv ./dynamic-ip ./.dynamic-ip
+mv ~/dynamic-ip ~/.dynamic-ip
+cd ~/.dynamic-ip
+npm install --production
 ```
 
 Create a file in /etc/systemd/system called dynamic-ip.service
