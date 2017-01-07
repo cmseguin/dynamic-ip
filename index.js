@@ -80,6 +80,6 @@ setInterval(() => {
             }
         });
     } catch (e) {
-        logger.error(e.getMessage());
+        logger.error(e.message);
     }
 }, config.get('interval'));
