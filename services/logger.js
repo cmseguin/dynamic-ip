@@ -17,7 +17,7 @@ if (config.get('debug') === true) {
             const now = new Date();
             const prefix = `[${dateFormat(now, 'yyyy-mm-dd HH:MM:ss')}]`;
             const message = options.message || '';
-            const meta = options.meta && Object.keys(options.meta).length ? '\n\t' + JSON.stringify(options.meta) : '';
+            const meta = options.meta && Object.keys(options.meta).length ? '\n\t' + JSON.stringify(options.meta, null, 2) : '';
 
             return `${prefix} ${message} ${meta}`;
         }

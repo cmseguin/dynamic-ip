@@ -3,7 +3,7 @@ const objHelper = require('../helpers/object');
 const configFile = require('../config');
 const localConfigFile = require('../config-local');
 
-const SystemError = require('../errors/system-error');
+const Error = require('../errors/Error');
 
 const config = extend(configFile, localConfigFile);
 
@@ -13,7 +13,7 @@ module.exports = {
         const tk = typeof key;
 
         if (tk !== 'string') {
-            throw new SystemError(`Key is not a valid.\nValue: ${key}\nType: ${tk}`);
+            throw new Error(`Key is not valid.\nValue: ${key}\nType: ${tk}`);
         }
 
         return objHelper.access(config, key);
@@ -23,7 +23,7 @@ module.exports = {
         const tk = typeof key;
 
         if (tk !== 'string') {
-            throw new SystemError(`Key is not a valid.\nValue: ${key}\nType: ${tk}`);
+            throw new Error(`Key is not valid.\nValue: ${key}\nType: ${tk}`);
         }
 
         return typeof objHelper.access(config, key) !== 'undefined';
