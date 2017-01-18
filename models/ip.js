@@ -11,7 +11,7 @@ module.exports = {
      * @returns {object} Promise
      */
     'get': () => {
-        const promise = new Promise((resolve, reject) => {
+        const promise = new Promise((resolve) => {
             // Initialize the request
             const request = rest.get(config.get('ipEndpoint'), {
                 'timeout': 10000
@@ -19,7 +19,7 @@ module.exports = {
 
             // Subscribe to the timeout event
             request.on('timeout', (ms) => {
-                reject(new Error(`Timeout while getting the ip address after ${ms}ms`));
+                throw new Error(`Timeout while getting the ip address after ${ms}ms`);
             });
 
             // Subscribe to the complete event
@@ -32,27 +32,25 @@ module.exports = {
 
                 // Ensure that the status code range in the 200
                 if (sc < 200 || sc >= 300) {
-                    reject(new Error(`Failed to get the ip with status code: ${sc}`));
-
-                    return; // Go no further;
+                    throw new Error(`Failed to get the ip with status code: ${sc}`);
                 }
 
                 // Validate the body of the response
                 if (td !== 'object') {
-                    reject(new Error(`Type: ${td} of data is not an object`));
-
-                    return; // Go no further;
+                    throw new Error(`Type: ${td} of data is not an object`);
                 }
 
                 // Validate that an ip was returned
                 if (!data.ip) {
-                    reject(new Error(`No Ip address was returned`));
-
-                    return; // Go no further;
+                    throw new Error(`No Ip address was returned`);
                 }
 
                 // Resolve the promise
-                resolve(data.ip);
+                resolve({
+                    'ip': data.ip,
+                    data,
+                    response
+                });
             });
         });
 

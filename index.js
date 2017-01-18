@@ -9,7 +9,7 @@ const Notice = require('./errors/Notice');
 const exceptionHandler = require('./errors/handler');
 
 const engine = {
-    'updateNecessityCheck': function updateNecessityCheck (ip) {
+    'updateNecessityCheck': function updateNecessityCheck ({ip}) {
         // Check if the ip is the same, in which case we stop any other
         // actions.
         if (engine.ip === ip) {
@@ -61,7 +61,7 @@ const engine = {
             const records = domainStack.records;
 
             // Now we get the records from digitalocean
-            Records.get(domain).then((response) => {
+            Records.get(domain).then(({response}) => {
                 promises.push(engine.setRecords(domain, records, response));
             })
             .catch(exceptionHandler);

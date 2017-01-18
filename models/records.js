@@ -63,26 +63,15 @@ module.exports = {
      * @returns {object} Promise
      */
     'get': function get (domain) {
-        const promise = new Promise((resolve, reject) => {
-            let endpoint = null;
-
-            // Storing the endpoint
-            try {
-                endpoint = this._buildGetEndpoint(domain);
-            } catch (e) {
-                reject(e);
-
-                return; // Go no further;
-            }
+        const promise = new Promise((resolve) => {
+            const endpoint = this._buildGetEndpoint(domain);
 
             // Store the type of the arguments
             const td = typeof domain;
 
             // Validate the domain
             if (td !== 'string' || !domain.match(domainregex)) {
-                reject(new Error(`Domain is not a valid.\nValue: ${domain}\nType: ${td}`));
-
-                return; // Go no further;
+                throw new Error(`Domain is not a valid.\nValue: ${domain}\nType: ${td}`);
             }
 
             // Initialize the request
@@ -97,7 +86,7 @@ module.exports = {
 
             // Subscribe to the timeout event
             request.on('timeout', (ms) => {
-                reject(Error(`Timeout while getting the records after ${ms}ms`));
+                throw Error(`Timeout while getting the records after ${ms}ms`);
             });
 
             // Subscribe to the complete event
@@ -107,9 +96,7 @@ module.exports = {
 
                 // Ensure that the status code range in the 200
                 if (sc < 200 || sc >= 300) {
-                    reject(new Error(`Failed to get records with status code: ${sc}`));
-
-                    return; // Go no further;
+                    throw new Error(`Failed to get records with status code: ${sc}`);
                 }
 
                 // Make sure the api is returning the correct format.
@@ -118,13 +105,15 @@ module.exports = {
                     typeof data.domain_records !== 'object' ||
                     !(data.domain_records instanceof Array)
                 ) {
-                    reject(new Error(`The data returned if not a valid format`));
-
-                    return; // Go no further;
+                    throw new Error(`The data returned if not a valid format`);
                 }
 
                 // resolve promise
-                resolve(data.domain_records, response);
+                resolve({
+                    'records': data.domain_records,
+                    data,
+                    response
+                });
             });
         });
 
@@ -142,17 +131,8 @@ module.exports = {
      * @returns {object} Promise
      */
     'set': function set (domain, record, ip) {
-        const promise = new Promise((resolve, reject) => {
-            let endpoint = null;
-
-            // Storing the endpoint
-            try {
-                endpoint = this._buildSetEndpoint(domain, record);
-            } catch (e) {
-                reject(e);
-
-                return; // Go no further;
-            }
+        const promise = new Promise((resolve) => {
+            const endpoint = this._buildSetEndpoint(domain, record);
 
             // Store the type of the arguments
             const td = typeof domain;
@@ -161,23 +141,17 @@ module.exports = {
 
             // Validate the record
             if (tr !== 'number') {
-                reject(new Error(`Record id is not a valid.\nValue: ${record}\nType: ${tr}`));
-
-                return; // Go no further;
+                throw new Error(`Record id is not a valid.\nValue: ${record}\nType: ${tr}`);
             }
 
             // Validate the domain
             if (td !== 'string' || !domain.match(domainregex)) {
-                reject(new Error(`Domain is not a valid.\nValue: ${domain}\nType: ${td}`));
-
-                return; // Go no further;
+                throw new Error(`Domain is not a valid.\nValue: ${domain}\nType: ${td}`);
             }
 
             // Validate the ip address
             if (ti !== 'string' || !ip.match(ipregex)) {
-                reject(new Error(`Ip address is not a valid.\nValue: ${ip}\nType: ${ti}`));
-
-                return; // Go no further;
+                throw new Error(`Ip address is not a valid.\nValue: ${ip}\nType: ${ti}`);
             }
 
             // Initialize the request
@@ -196,7 +170,7 @@ module.exports = {
 
             // Subscribe to the timeout event
             request.on('timeout', (ms) => {
-                reject(new Error(`Timeout while setting the records after ${ms}ms`));
+                throw new Error(`Timeout while setting the records after ${ms}ms`);
             });
 
             // Subscribe to the complete event
@@ -206,13 +180,14 @@ module.exports = {
 
                 // Ensure that the status code range in the 200
                 if (sc < 200 || sc >= 300) {
-                    reject(new Error(`Failed to get records with status code: ${sc}`));
-
-                    return; // Go no further;
+                    throw new Error(`Failed to get records with status code: ${sc}`);
                 }
 
                 // Resolve promise
-                resolve(data, response);
+                resolve({
+                    data,
+                    response
+                });
             });
         }); // end of promise
 
