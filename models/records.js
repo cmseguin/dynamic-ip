@@ -7,17 +7,31 @@ const config = require('../services/config');
 const ipregex = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}$/;
 const domainregex = /^((?=[a-z0-9-]{1,63}\.)[a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,63}$/;
 
-const doe = config.get('digitalOceanEndpoint');
-const dot = config.get('digitalOceanToken');
-
 module.exports = {
     /**
-     * Build the url for the get request.
+     * Allow us to adjust the timeout if needed, very useful for testing since
+     * we can mock a timeout without waiting seconds
+     */
+    '_requestTimeout': 10000,
+
+    /**
+     * Store the endpoint, useful to test the model
+     */
+    '_endpoint': config.get('digitalOceanEndpoint'),
+
+    /**
+     * Store the token, useful to test the model
+     */
+    '_token': config.get('digitalOceanToken'),
+
+    /**
+     * Build the path for the set request.
      * --
      * @param {string} domain The domain for the url
+     * @param {string} record The record id for the url.
      * @returns {object} Promise
      */
-    '_buildGetEndpoint': (domain) => {
+    '_buildGetPath': (domain) => {
         // Store the type of the arguments
         const td = typeof domain;
 
@@ -26,17 +40,17 @@ module.exports = {
             throw new Error(`Domain is not a valid.\nValue: ${domain}\nType: ${td}`);
         }
 
-        return url.resolve(doe, `domains/${domain}/records`);
+        return `v2/domains/${domain}/records`;
     },
 
     /**
-     * Build the url for the set request.
+     * Build the path for the set request.
      * --
      * @param {string} domain The domain for the url
      * @param {string} record The record id for the url.
      * @returns {object} Promise
      */
-    '_buildSetEndpoint': (domain, record) => {
+    '_buildSetPath': (domain, record) => {
         // Store the type of the arguments
         const td = typeof domain;
         const tr = typeof record;
@@ -51,7 +65,7 @@ module.exports = {
             throw new Error(`Record is not a valid.\nValue: ${record}\nType: ${tr}`);
         }
 
-        return url.resolve(doe, `domains/${domain}/records/${record}`);
+        return `v2/domains/${domain}/records/${record}`;
     },
 
     /**
@@ -63,30 +77,30 @@ module.exports = {
      * @returns {object} Promise
      */
     'get': function get (domain) {
-        const promise = new Promise((resolve) => {
-            const endpoint = this._buildGetEndpoint(domain);
+        const promise = new Promise((resolve, reject) => {
+            const u = url.resolve(this._endpoint, this._buildGetPath(domain));
 
             // Store the type of the arguments
             const td = typeof domain;
 
             // Validate the domain
             if (td !== 'string' || !domain.match(domainregex)) {
-                throw new Error(`Domain is not a valid.\nValue: ${domain}\nType: ${td}`);
+                reject(new Error(`Domain is not a valid.\nValue: ${domain}\nType: ${td}`));
             }
 
             // Initialize the request
-            const request = rest.get(endpoint, {
-                'timeout': 10000,
+            const request = rest.get(u, {
+                'timeout': this._requestTimeout,
                 'headers': {
                     'Accept': '*/*',
                     'User-Agent': 'Restler for node.js',
-                    'Authorization': `Bearer ${dot}`
+                    'Authorization': `Bearer ${this._token}`
                 }
             });
 
             // Subscribe to the timeout event
             request.on('timeout', (ms) => {
-                throw Error(`Timeout while getting the records after ${ms}ms`);
+                reject(Error(`Timeout while getting the records after ${ms}ms`));
             });
 
             // Subscribe to the complete event
@@ -96,7 +110,7 @@ module.exports = {
 
                 // Ensure that the status code range in the 200
                 if (sc < 200 || sc >= 300) {
-                    throw new Error(`Failed to get records with status code: ${sc}`);
+                    reject(new Error(`Failed to get records with status code: ${sc}`));
                 }
 
                 // Make sure the api is returning the correct format.
@@ -105,7 +119,7 @@ module.exports = {
                     typeof data.domain_records !== 'object' ||
                     !(data.domain_records instanceof Array)
                 ) {
-                    throw new Error(`The data returned if not a valid format`);
+                    reject(new Error(`The data returned if not a valid format`));
                 }
 
                 // resolve promise
@@ -131,8 +145,8 @@ module.exports = {
      * @returns {object} Promise
      */
     'set': function set (domain, record, ip) {
-        const promise = new Promise((resolve) => {
-            const endpoint = this._buildSetEndpoint(domain, record);
+        const promise = new Promise((resolve, reject) => {
+            const u = url.resolve(this._endpoint, this._buildSetPath(domain, record));
 
             // Store the type of the arguments
             const td = typeof domain;
@@ -141,22 +155,22 @@ module.exports = {
 
             // Validate the record
             if (tr !== 'number') {
-                throw new Error(`Record id is not a valid.\nValue: ${record}\nType: ${tr}`);
+                reject(new Error(`Record id is not a valid.\nValue: ${record}\nType: ${tr}`));
             }
 
             // Validate the domain
             if (td !== 'string' || !domain.match(domainregex)) {
-                throw new Error(`Domain is not a valid.\nValue: ${domain}\nType: ${td}`);
+                reject(new Error(`Domain is not a valid.\nValue: ${domain}\nType: ${td}`));
             }
 
             // Validate the ip address
             if (ti !== 'string' || !ip.match(ipregex)) {
-                throw new Error(`Ip address is not a valid.\nValue: ${ip}\nType: ${ti}`);
+                reject(new Error(`Ip address is not a valid.\nValue: ${ip}\nType: ${ti}`));
             }
 
             // Initialize the request
-            const request = rest.put(endpoint, {
-                'timeout': 10000,
+            const request = rest.put(u, {
+                'timeout': this._requestTimeout,
                 'data': JSON.stringify({
                     'data': ip
                 }),
@@ -164,13 +178,13 @@ module.exports = {
                     'Accept': '*/*',
                     'User-Agent': 'Restler for node.js',
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${dot}`
+                    'Authorization': `Bearer ${this._token}`
                 }
             });
 
             // Subscribe to the timeout event
             request.on('timeout', (ms) => {
-                throw new Error(`Timeout while setting the records after ${ms}ms`);
+                reject(new Error(`Timeout while setting the records after ${ms}ms`));
             });
 
             // Subscribe to the complete event
@@ -180,7 +194,7 @@ module.exports = {
 
                 // Ensure that the status code range in the 200
                 if (sc < 200 || sc >= 300) {
-                    throw new Error(`Failed to get records with status code: ${sc}`);
+                    reject(new Error(`Failed to get records with status code: ${sc}`));
                 }
 
                 // Resolve promise

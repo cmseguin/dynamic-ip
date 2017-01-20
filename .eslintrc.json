@@ -6,6 +6,7 @@
         "mocha": true
     },
     "rules": {
+        "arrow-body-style": 0,
         "brace-style": 0,
         "capitalized-comments": 0,
         "consistent-return": 0,
