@@ -127,4 +127,5 @@ const engine = {
     }
 };
 
+logger.info('Starting the dynamic ip process');
 engine.start();
