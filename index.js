@@ -5,7 +5,7 @@ const Storage = require('./models/storage');
 const config = require('./services/config');
 const logger = require('./services/logger');
 
-const Notice = require('./errors/Notice');
+const Debug = require('./errors/Debug');
 const exceptionHandler = require('./errors/handler');
 
 const engine = {
@@ -13,7 +13,7 @@ const engine = {
         // Check if the ip is the same, in which case we stop any other
         // actions.
         if (engine.ip === ip) {
-            throw new Notice(`Ip did not change`);
+            throw new Debug(`Ip did not change`);
         }
 
         return ip;
