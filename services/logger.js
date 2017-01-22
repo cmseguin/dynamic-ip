@@ -5,6 +5,25 @@ const dateFormat = require('dateformat');
 const config = require('./config');
 
 const transports = [];
+
+const mkdirSync = (p) => {
+    try {
+        fs.mkdirSync(p);
+    } catch (e) {
+        if (e.code !== 'EEXIST') {
+            throw e;
+        }
+    }
+};
+
+const mkdirpSync = (dirpath) => {
+    const parts = dirpath.split(path.sep);
+
+    for (let i = 1; i <= parts.length; i++) {
+        mkdirSync(path.join.apply(null, parts.slice(0, i)));
+    }
+};
+
 let level = 'info';
 
 if (config.get('debug') === true) {
@@ -14,10 +33,16 @@ if (config.get('debug') === true) {
     // Output to the console
     transports.push(new winston.transports.Console({
         'formatter': function formatter (options) {
+            let meta = '';
+
             const now = new Date();
             const prefix = `[${dateFormat(now, 'yyyy-mm-dd HH:MM:ss')}]`;
             const message = options.message || '';
-            const meta = options.meta && Object.keys(options.meta).length ? '\n\t' + JSON.stringify(options.meta, null, 2) : '';
+
+            // If we send meta informations. aka: an object...
+            if (options.meta && Object.keys(options.meta).length) {
+                meta = `\n\t${JSON.stringify(options.meta, null, 2)}`;
+            }
 
             return `${prefix} ${message} ${meta}`;
         }
@@ -29,10 +54,7 @@ if (config.get('debug') === true) {
     const logDest = path.join(logDir, logFile);
 
     // Make sure log folder exists
-    if (!fs.existsSync(logDir)) {
-        // Create the directory if it does not exist
-        fs.mkdirSync(logDir);
-    }
+    mkdirpSync(logDir);
 
     // Output to a file
     transports.push(new winston.transports.File({

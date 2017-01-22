@@ -6,6 +6,7 @@ const config = require('./services/config');
 const logger = require('./services/logger');
 
 const Debug = require('./errors/Debug');
+const Error = require('./errors/Error');
 const exceptionHandler = require('./errors/handler');
 
 const engine = {
@@ -13,13 +14,17 @@ const engine = {
         // Check if the ip is the same, in which case we stop any other
         // actions.
         if (engine.ip === ip) {
-            throw new Debug(`Ip did not change`);
+            throw new Debug(`Ip address did not change. IP: ${ip}`);
         }
 
         return ip;
     },
     'setRecords': function setRecords (domain, records, response) {
         const promises = [];
+
+        if (!(response instanceof Array)) {
+            throw new Error('Did not receive an array of records.');
+        }
 
         // We will now loop through the records returned from
         // digitalocean
@@ -61,8 +66,8 @@ const engine = {
             const records = domainStack.records;
 
             // Now we get the records from digitalocean
-            Records.get(domain).then(({response}) => {
-                promises.push(engine.setRecords(domain, records, response));
+            Records.get(domain).then((result) => {
+                promises.push(engine.setRecords(domain, records, result.records));
             })
             .catch(exceptionHandler);
         }
