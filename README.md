@@ -2,7 +2,8 @@
 
 ### Description
 Just a simple script that pings a 3rd party to find out if your ip changed every
-x amount of time. If it changes, it will update specified domains and records.
+x amount of time. If it changes, it will update specified domains and records.  
+*\*Currently only supports digital ocean*
 
 ### Installation
 
