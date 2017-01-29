@@ -42,11 +42,12 @@ Create a file in /etc/systemd/system called dynamic-ip.service
 ```
 [Unit]
 Description=A script to update one or more domains record to point to a non-static ip address
-After=network.target
 
 [Service]
-Type=fork
 WorkingDirectory=/home/{user}
 ExecStart=/usr/local/bin/node /home/{user}/.dynamic-ip/index.js
 Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
 ```
